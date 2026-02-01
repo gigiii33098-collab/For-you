@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy 2nd Anniversary</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP & Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Outfit"', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: "rgba(20, 20, 20, 0.7)", 
+                        border: "rgba(255, 255, 255, 0.15)",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Main scroll handled inside main */
+            background-color: #050505;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Background Animation */
+        #canvas3d {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Card Design */
+        .glass-card {
+            background: rgba(25, 25, 25, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #ff9a9e, #fecfef, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Button Styling */
+        .btn-glow {
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 50;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 77, 109, 0.5);
+        }
+        .btn-glow:active { transform: scale(0.98); }
+
+        /* Polaroid Styling - Adjusted for better fit */
+        .polaroid {
+            background: white;
+            padding: 10px; 
+            padding-bottom: 40px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            transform: rotate(-2deg);
+            transition: transform 0.4s ease;
+            width: 260px; /* Fixed width to prevent overflow */
+            margin: 0 auto;
+            flex-shrink: 0;
+        }
+        .polaroid:hover {
+            transform: rotate(0deg) scale(1.02);
+            z-index: 10;
+        }
+        .polaroid img {
+            display: block;
+            width: 100%;
+            height: 320px; /* Fixed height to prevent massive images */
+            object-fit: cover;
+            background-color: #f0f0f0;
+        }
+        .caption {
+            font-family: 'Playfair Display', serif;
+            color: black;
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: 700;
+            margin-top: 10px;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        /* Utilities */
+        .hidden-step { display: none !important; opacity: 0; }
+        
+    </style>
+</head>
+<body class="selection:bg-pink-500 selection:text-white h-screen w-screen overflow-hidden">
+
+    <!-- Canvas for Hearts -->
+    <canvas id="canvas3d"></canvas>
+
+    <!-- Progress Bar -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-white/10 z-50">
+        <div id="progress-bar" class="h-full bg-gradient-to-r from-pink-500 to-rose-400 w-0 transition-all duration-700 ease-out"></div>
+    </div>
+
+    <!-- Main Container with Scrolling enabled for small screens -->
+    <main class="relative z-10 flex flex-col items-center justify-center h-full w-full px-4 overflow-y-auto overflow-x-hidden">
+        
+        <!-- STEP 1: Welcome -->
+        <div id="step-1" class="glass-card p-10 rounded-3xl w-full max-w-md text-center transform transition-all my-auto">
+            <div class="text-6xl mb-6 animate-pulse">❤️</div>
+            <h1 class="font-serif text-4xl font-bold mb-4 text-gradient">Hey baby,</h1>
+            <p class="text-lg text-gray-200 mb-8 font-light leading-relaxed">
+                I made something small for you.<br>Just to see you smile.
+            </p>
+            <button onclick="nextStep(2)" class="btn-glow px-10 py-3 rounded-full text-white font-medium text-lg tracking-wide">
+                Let’s Begin
+            </button>
+        </div>
+
+        <!-- STEP 2: Anniversary Message -->
+        <div id="step-2" class="glass-card hidden-step p-10 rounded-3xl w-full max-w-lg text-center my-auto">
+            <div class="text-5xl mb-6">✨</div>
+            <h1 class="font-serif text-3xl font-bold mb-6 text-gradient">Happy 2nd Anniversary</h1>
+            <p class="text-lg text-gray-200 mb-8 font-light leading-relaxed">
+                The world feels warmer because of you.<br>
+                You are truly the best gift I have ever received.
+            </p>
+            <button onclick="nextStep(3)" class="btn-glow px-10 py-3 rounded-full text-white font-medium text-lg tracking-wide">
+                There’s more…
+            </button>
+        </div>
+
+        <!-- STEP 3: Bento Grid -->
+        <div id="step-3" class="glass-card hidden-step p-8 rounded-3xl w-full max-w-2xl text-center my-auto">
+            <h2 class="font-serif text-2xl font-bold mb-6 text-white">Why I Love You</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left w-full mb-8">
+                <div class="bg-white/5 border border-white/10 p-5 rounded-2xl hover:bg-white/10 transition">
+                    <h3 class="text-lg font-bold text-pink-300 mb-1">😊 Your Smile</h3>
+                    <p class="text-gray-300 text-sm">I fall for you every single time I see it.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 p-5 rounded-2xl hover:bg-white/10 transition">
+                    <h3 class="text-lg font-bold text-pink-300 mb-1">🤍 Your Love</h3>
+                    <p class="text-gray-300 text-sm">You always put us first. Gentle and kind.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 p-5 rounded-2xl md:col-span-2 hover:bg-white/10 transition">
+                    <h3 class="text-lg font-bold text-pink-300 mb-1">🌿 Your Soul</h3>
+                    <p class="text-gray-300 text-sm">Purest and calmest. You fight for us when things get hard.</p>
+                </div>
+            </div>
+
+            <button onclick="nextStep(4)" class="btn-glow px-10 py-3 rounded-full text-white font-medium text-lg tracking-wide">
+                Remember this?
+            </button>
+        </div>
+
+        <!-- STEP 4: Photo Memory -->
+        <div id="step-4" class="glass-card hidden-step p-6 rounded-3xl w-full max-w-md text-center my-auto">
+            <h2 class="font-serif text-3xl font-bold mb-6 text-white">Our Favorite Memory</h2>
+            
+            <!-- POLAROID SECTION -->
+            <div class="polaroid mb-6">
+                <!-- 
+                    IMAGE LOGIC:
+                    1. Tries to load "us.jpg"
+                    2. If fails, loads a romantic placeholder from the internet.
+                -->
+                <img 
+                    src="us.jpg" 
+                    alt="Us" 
+                    class="w-full h-full object-cover"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1518105570919-e342af1a8275?q=80&w=1887&auto=format&fit=crop'; console.log('us.jpg not found, using backup');">
+                
+                <p class="caption">Us 🤍</p>
+            </div>
+            <!-- END POLAROID -->
+
+            <div class="glass-card p-4 rounded-2xl mb-6 w-full mt-2">
+                <p class="text-gray-200 italic text-sm">“No matter the distance, this moment lives in my heart forever.”</p>
+            </div>
+
+            <!-- Ensure margin top so it doesn't overlap on small screens -->
+            <button onclick="nextStep(5)" class="btn-glow px-8 py-3 mt-4 rounded-full text-white font-medium tracking-wide text-lg shadow-lg">
+                One last thing…
+            </button>
+        </div>
+
+        <!-- STEP 5: The Promise & Finale -->
+        <div id="step-5" class="step-content hidden-step glass-card p-8 md:p-12 rounded-3xl w-full max-w-lg text-center my-auto">
+            <div class="text-6xl mb-6 animate-bounce">💞</div>
+            <h1 class="font-serif text-3xl md:text-4xl font-bold mb-6 text-gradient">Always You, No Matter the Distance</h1>
+            
+            <div class="text-left space-y-4 text-gray-200 font-light mb-8">
+                <p>No matter where life takes you or what you become, I will always love you and cheer for you — even from miles away.</p>
+                <p>I know I couldn’t do much for our second anniversary because of the distance, but I promise I’ll make it up to you when we meet.</p>
+                <p>Until then, know that my heart is always with you.</p>
+                <p class="font-medium text-pink-300">I miss you more than words can say, and I can’t wait to see you soon.</p>
+            </div>
+
+            <div id="final-message" class="hidden font-serif text-2xl text-white mb-6">
+                I love you. Always. ❤️
+            </div>
+
+            <button id="celebrate-btn" onclick="celebrate()" class="btn-glow px-10 py-4 rounded-full text-white font-bold tracking-wide text-xl shadow-xl shadow-pink-500/20">
+                Celebrate Us
+            </button>
+            
+            <div id="final-anniversary-text" class="hidden mt-6">
+                <h2 class="font-serif text-3xl font-bold text-gradient">Happy Second Anniversary, my love ❤️</h2>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. Three.js Floating Hearts Background ---
+        const initThreeJS = () => {
+            const canvas = document.getElementById('canvas3d');
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050505, 0.05);
+
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            const heartShape = new THREE.Shape();
+            const x = 0, y = 0;
+            heartShape.moveTo(x + 5, y + 5);
+            heartShape.bezierCurveTo(x + 5, y + 5, x + 4, y, x, y);
+            heartShape.bezierCurveTo(x - 6, y, x - 6, y + 7, x - 6, y + 7);
+            heartShape.bezierCurveTo(x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19);
+            heartShape.bezierCurveTo(x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7);
+            heartShape.bezierCurveTo(x + 16, y + 7, x + 16, y, x + 10, y);
+            heartShape.bezierCurveTo(x + 7, y, x + 5, y + 5, x + 5, y + 5);
+
+            const geometry = new THREE.ExtrudeGeometry(heartShape, { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 });
+            geometry.center();
+            geometry.scale(0.04, 0.04, 0.04);
+
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0xff4d6d, emissive: 0x330011, shininess: 30 
+            });
+
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            const hearts = [];
+            for (let i = 0; i < 35; i++) {
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(
+                    (Math.random() - 0.5) * 25, 
+                    (Math.random() - 0.5) * 20, 
+                    (Math.random() - 0.5) * 15 - 5
+                );
+                mesh.rotation.x = Math.random() * Math.PI;
+                mesh.rotation.y = Math.random() * Math.PI;
+                mesh.userData = { speed: 0.005 + Math.random() * 0.01 };
+                scene.add(mesh);
+                hearts.push(mesh);
+            }
+            camera.position.z = 10;
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                hearts.forEach(h => {
+                    h.position.y += h.userData.speed;
+                    h.rotation.y += h.userData.speed;
+                    if (h.position.y > 10) h.position.y = -10;
+                });
+                renderer.render(scene, camera);
+            };
+            animate();
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        // --- 2. Navigation & Step Logic ---
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        function nextStep(step) {
+            const current = document.getElementById(`step-${currentStep}`);
+            const next = document.getElementById(`step-${step}`);
+            
+            // Progress Bar
+            document.getElementById('progress-bar').style.width = `${((step - 1) / (totalSteps - 1)) * 100}%`;
+
+            // Animation
+            gsap.to(current, {
+                duration: 0.5, opacity: 0, y: -20, ease: "power2.in",
+                onComplete: () => {
+                    current.classList.add('hidden-step');
+                    
+                    // Show next
+                    next.classList.remove('hidden-step');
+                    
+                    // Reset position and animate in
+                    gsap.fromTo(next, 
+                        { opacity: 0, y: 30 }, 
+                        { duration: 0.8, opacity: 1, y: 0, ease: "back.out(1.2)" }
+                    );
+                    
+                    currentStep = step;
+                }
+            });
+        }
+
+        // --- 3. Celebration ---
+        function celebrate() {
+            const btn = document.getElementById('celebrate-btn');
+            gsap.to(btn, {
+                duration: 0.3, scale: 0.9, opacity: 0,
+                onComplete: () => {
+                    btn.style.display = 'none';
+                    document.getElementById('final-message').classList.remove('hidden');
+                    document.getElementById('final-anniversary-text').classList.remove('hidden');
+                    
+                    gsap.fromTo(["#final-message", "#final-anniversary-text"], 
+                        {opacity:0, y:20}, 
+                        {opacity:1, y:0, duration:1, stagger: 0.3}
+                    );
+                    
+                    // Confetti Explosion
+                    const duration = 3000;
+                    const end = Date.now() + duration;
+                    (function frame() {
+                        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+                        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    }());
+                    
+                    // Heart Rain
+                    confetti({ 
+                        particleCount: 100, 
+                        spread: 100, 
+                        origin: { y: 0.6 },
+                        shapes: ['circle'],
+                        colors: ['#ff4d6d', '#ffccd5', '#fff']
+                    });
+                }
+            });
+        }
+
+        window.onload = () => {
+            initThreeJS();
+            // Intro animation
+            gsap.from("#step-1", { duration: 1, opacity: 0, y: 20, delay: 0.2 });
+        };
+    </script>
+</body>
+</html>
